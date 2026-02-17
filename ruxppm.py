@@ -20,6 +20,7 @@ import os
 import sys
 import threading
 import time
+import wave
 
 import mido
 import numpy as np
@@ -197,7 +198,7 @@ class PPMGenerator:
         return out
 
 
-def make_audio_callback(servo_state: ServoState):
+def make_audio_callback(servo_state: ServoState, recorded_frames=None):
     """Create a sounddevice output stream callback."""
     ppm_gen = PPMGenerator()
     frame_dt = PPM_FRAME_WIDTH
@@ -211,6 +212,9 @@ def make_audio_callback(servo_state: ServoState):
         # Stereo: left = silence, right = PPM signal
         outdata[:, 0] = 0.0
         outdata[:, 1] = ppm
+
+        if recorded_frames is not None:
+            recorded_frames.append(outdata.copy())
 
     return callback
 
@@ -279,13 +283,17 @@ def main():
     print()
 
     midi_file = None
+    wav_output = None
     if len(sys.argv) > 1:
         midi_file = sys.argv[1]
         if not os.path.isfile(midi_file):
             print(f"Error: MIDI file not found: {midi_file}")
             sys.exit(1)
+    if len(sys.argv) > 2:
+        wav_output = sys.argv[2]
 
     servo_state = ServoState()
+    recorded_frames = [] if wav_output else None
 
     if midi_file:
         # MIDI file playback mode
@@ -328,7 +336,7 @@ def main():
         blocksize=AUDIO_BLOCKSIZE,
         channels=2,
         dtype="float32",
-        callback=make_audio_callback(servo_state),
+        callback=make_audio_callback(servo_state, recorded_frames),
     )
 
     try:
@@ -344,6 +352,17 @@ def main():
                     time.sleep(0.1)
     except KeyboardInterrupt:
         print("\nStopping.")
+
+    if wav_output and recorded_frames:
+        audio_data = np.concatenate(recorded_frames, axis=0)
+        # Convert float32 [-1.0, 1.0] to int16
+        int_data = np.clip(audio_data * 32767, -32768, 32767).astype(np.int16)
+        with wave.open(wav_output, "w") as wf:
+            wf.setnchannels(2)
+            wf.setsampwidth(2)
+            wf.setframerate(SAMPLE_RATE)
+            wf.writeframes(int_data.tobytes())
+        print(f"Saved WAV output to: {wav_output}")
 
 
 if __name__ == "__main__":
