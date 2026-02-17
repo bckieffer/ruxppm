@@ -16,6 +16,7 @@ Teddy Ruxpin channel assignments:
   CH5–CH8: unused (Grubby / audio routing)
 """
 
+import os
 import sys
 import threading
 import time
@@ -248,33 +249,74 @@ def midi_listener(port_name: str, servo_state: ServoState):
                     print(f"  {label} OFF")
 
 
+def midi_file_player(file_path: str, servo_state: ServoState, done_event: threading.Event):
+    """Play a MIDI file, sending note events to the servo state with real-time timing."""
+    print(f"Playing MIDI file: {file_path}")
+    print(f"  Mouth (lower jaw): note {NOTE_MOUTH} (C3) → CH4")
+    print(f"  Eyes:               note {NOTE_EYES} (D3) → CH2")
+    print(f"  Nose (upper jaw):   note {NOTE_NOSE} (E3) → CH3")
+    print()
+
+    midi_file = mido.MidiFile(file_path)
+    for msg in midi_file.play():
+        if msg.type == "note_on" and msg.velocity > 0:
+            servo_state.note_on(msg.note, msg.velocity)
+            label = {NOTE_MOUTH: "Mouth", NOTE_EYES: "Eyes", NOTE_NOSE: "Nose"}.get(msg.note)
+            if label:
+                print(f"  {label} ON  vel={msg.velocity}")
+        elif msg.type == "note_off" or (msg.type == "note_on" and msg.velocity == 0):
+            servo_state.note_off(msg.note)
+            label = {NOTE_MOUTH: "Mouth", NOTE_EYES: "Eyes", NOTE_NOSE: "Nose"}.get(msg.note)
+            if label:
+                print(f"  {label} OFF")
+
+    print("\nMIDI file playback complete.")
+    done_event.set()
+
+
 def main():
     print("=== MIDI-to-PPM Teddy Ruxpin Controller ===")
     print()
 
-    ports = list_midi_ports()
-    if ports is None:
-        sys.exit(1)
+    midi_file = None
+    if len(sys.argv) > 1:
+        midi_file = sys.argv[1]
+        if not os.path.isfile(midi_file):
+            print(f"Error: MIDI file not found: {midi_file}")
+            sys.exit(1)
 
-    if len(ports) == 1:
-        choice = 0
-    else:
-        try:
-            choice = int(input(f"\nSelect port [0-{len(ports)-1}]: "))
-        except (ValueError, EOFError):
-            choice = 0
-
-    if choice < 0 or choice >= len(ports):
-        print("Invalid selection.")
-        sys.exit(1)
-
-    port_name = ports[choice]
     servo_state = ServoState()
 
-    # Start MIDI listener in a background thread
-    midi_thread = threading.Thread(
-        target=midi_listener, args=(port_name, servo_state), daemon=True
-    )
+    if midi_file:
+        # MIDI file playback mode
+        done_event = threading.Event()
+        midi_thread = threading.Thread(
+            target=midi_file_player, args=(midi_file, servo_state, done_event), daemon=True
+        )
+    else:
+        # Live MIDI input mode
+        ports = list_midi_ports()
+        if ports is None:
+            sys.exit(1)
+
+        if len(ports) == 1:
+            choice = 0
+        else:
+            try:
+                choice = int(input(f"\nSelect port [0-{len(ports)-1}]: "))
+            except (ValueError, EOFError):
+                choice = 0
+
+        if choice < 0 or choice >= len(ports):
+            print("Invalid selection.")
+            sys.exit(1)
+
+        port_name = ports[choice]
+        done_event = None
+        midi_thread = threading.Thread(
+            target=midi_listener, args=(port_name, servo_state), daemon=True
+        )
+
     midi_thread.start()
 
     # Start audio output stream
@@ -291,8 +333,15 @@ def main():
 
     try:
         with stream:
-            while True:
-                time.sleep(0.1)
+            if done_event:
+                # File mode: wait for playback to finish, then flush remaining audio
+                while not done_event.is_set():
+                    time.sleep(0.1)
+                time.sleep(0.5)  # let final PPM frames flush
+            else:
+                # Live mode: run until Ctrl+C
+                while True:
+                    time.sleep(0.1)
     except KeyboardInterrupt:
         print("\nStopping.")
 

@@ -10,14 +10,14 @@ MIDI-to-PPM Teddy Ruxpin Controller — a real-time Python tool that listens for
 
 ```bash
 source venv/bin/activate
-python ppm_tool.py
+python ruxppm.py
 ```
 
 Dependencies are in `requirements.txt` (mido, python-rtmidi, numpy, sounddevice). Install with `pip install -r requirements.txt`.
 
 ## Architecture
 
-The entire application lives in `ppm_tool.py` (~300 lines) with four key components:
+The entire application lives in `ruxppm.py` (~300 lines) with four key components:
 
 - **ServoState** — Thread-safe servo position tracker for three channels (mouth, eyes, nose). Uses a threading lock since MIDI input and audio output run on separate threads.
 - **PPMGenerator** — Builds 22.5ms PPM audio frames in 8-channel RC format matching the original Teddy Ruxpin cassette encoding. PPM data is placed at the end of each frame with zero-padding at the start.
