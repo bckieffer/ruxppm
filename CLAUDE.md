@@ -22,7 +22,7 @@ The entire application lives in `ruxppm.py` (~300 lines) with four key component
 - **ServoState** — Thread-safe servo position tracker for three channels (mouth, eyes, nose). Uses a threading lock since MIDI input and audio output run on separate threads.
 - **PPMGenerator** — Builds 22.5ms PPM audio frames in 8-channel RC format matching the original Teddy Ruxpin cassette encoding. PPM data is placed at the end of each frame with zero-padding at the start.
 - **Audio callback** — Stereo output: silence on left channel, PPM signal on right channel. One PPM frame per audio block.
-- **MIDI listener** — Daemon thread mapping MIDI notes to servo positions: C3→mouth (CH4), D3→eyes (CH2), E3→nose (CH3).
+- **MIDI listener** — Daemon thread mapping MIDI notes to servo positions: C3→eyes (CH2), E3→mouth (CH3), D3→nose (CH4).
 
 ## Key Domain Details
 

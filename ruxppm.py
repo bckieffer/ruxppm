@@ -34,9 +34,9 @@ import sounddevice as sd
 SAMPLE_RATE = 44100
 
 # MIDI note assignments (default: C3, D3, E3)
-NOTE_MOUTH = 60  # C3 — Note On = open jaw, Note Off = close
-NOTE_EYES = 62   # D3 — Note On = close eyes, Note Off = open
-NOTE_NOSE = 64   # E3 — Note On = wiggle upper jaw, Note Off = stop
+NOTE_EYES = 60   # C3 — Note On = close eyes, Note Off = open
+NOTE_NOSE = 62  # D3 — Note On = open jaw, Note Off = close
+NOTE_MOUTH = 64   # E3 — Note On = wiggle upper jaw, Note Off = stop
 
 # Servo rest positions (0–100 scale matching the original TR format).
 # 0 = 700µs (servo min), 100 = 1500µs (servo max).

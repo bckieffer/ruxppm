@@ -49,9 +49,9 @@ Both modes can be stopped at any time with **Ctrl+C**.
 
 | Note | Name | Servo        | PPM Channel | Behavior                          |
 |------|------|--------------|-------------|-----------------------------------|
-| 60   | C3   | Lower jaw    | CH4         | Velocity-scaled open; release closes |
-| 62   | D3   | Eyes         | CH2         | Velocity-scaled close; release opens |
-| 64   | E3   | Upper jaw    | CH3         | Toggle on/off (not velocity-scaled)  |
+| 60   | C3   | EYES         | CH4         | Velocity-scaled open; release closes |
+| 62   | D3   | UPPER jaw    | CH2         | Velocity-scaled close; release opens |
+| 64   | E3   | LOWER jaw    | CH3         | Toggle on/off (not velocity-scaled)  |
 
 ## Configuration
 
@@ -60,9 +60,9 @@ Edit the constants at the top of `ruxppm.py` to adjust:
 | Constant       | Default | Description                                      |
 |----------------|---------|--------------------------------------------------|
 | `SAMPLE_RATE`  | 44100   | Audio sample rate. Higher rates (96000, 192000) give finer servo resolution. |
-| `NOTE_MOUTH`   | 60      | MIDI note number for lower jaw                   |
-| `NOTE_EYES`    | 62      | MIDI note number for eyes                        |
-| `NOTE_NOSE`    | 64      | MIDI note number for upper jaw                   |
+| `NOTE_EYES`    | 60      | MIDI note number for eyes                        |
+| `NOTE_NOSE`    | 62      | MIDI note number for upper jaw                   |
+| `NOTE_MOUTH`   | 64      | MIDI note number for lower jaw                   |
 | `SERVO_SCALE`  | 0.90    | Servo travel multiplier (0.0–1.0)                |
 | `NOSE_OPEN`    | 80      | Upper jaw open position (0–100 scale)            |
 
