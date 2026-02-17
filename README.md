@@ -4,6 +4,8 @@ A real-time Python tool that converts MIDI note input into PPM (Pulse Position M
 
 The PPM signal is output on the **right stereo channel**, matching the 8-channel RC-style format used by the original Teddy Ruxpin cassette tapes.
 
+Inspired by https://github.com/pjdoland/jf-sebastian and https://github.com/GabeKnuth/t-rux
+
 ## Requirements
 
 - Python 3.10+
